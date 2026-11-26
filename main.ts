@@ -7,7 +7,7 @@
 //
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
@@ -40,7 +40,11 @@ if (shots.length < 3 || shots.length > 4) {
   );
 }
 
-rmSync(outDir, { recursive: true, force: true });
+// The grader hands main.ts an empty writable /output owned by someone
+// else, so never remove the output directory itself: user 65534 cannot
+// delete a directory whose parent it does not own (EPERM). Creating it
+// (recursive mkdir) and overwriting its contents is enough — the grader
+// starts each run from an empty /output.
 mkdirSync(outDir, { recursive: true });
 cpSync(join(repoRoot, 'app'), join(outDir, 'app'), { recursive: true });
 cpSync(join(repoRoot, 'screenshots'), join(outDir, 'screenshots'), {
